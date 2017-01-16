@@ -4,16 +4,27 @@ Provides a full XWiki environment made up of the following:
 
 All source files are under the LGPL 2.1 license.
 
-Usage
------
+Using
+=====
 
 * Install Docker on your machine
 * Install Git and run `git clone https://github.com/xwiki-contrib/docker-xwiki.git` or download the content of https://github.com/xwiki-contrib/docker-xwiki
 * Go to the `xwiki-mysql-tomcat` directory: `cd xwiki-mysql-tomcat`
+
+With docker-compose
+-------------------
+
 * Run `docker-compose up`
+* Note that you can configure the default environment variables by editing the `.env` file
+
+With Dockerfile
+---------------
+
+* Build the XWiki image with `docker build . -t xwiki-mysql-tomcat:latest -t xwiki-mysql-tomcat:8.4.4`
+* Then you'll need to run a mysql container and a container for the built xwiki image
 
 Details
--------
+=======
 
 Volumes:
 * Two volumes are created:
@@ -29,8 +40,15 @@ MySQL:
  * Once inside the mysql container execute the `mysql` command: `mysql --user=xwiki --password=xwiki`
 
 Future
-------
+======
 
 * Setup xinit
 * Configure libreoffice
 * Solr as external service
+
+Credits
+=======
+
+* Created by Vincent Massol
+* Contributions from Ludovic Dubost, Jean Simard
+* Some code was copied from https://github.com/ThomasSteinbach/docker_xwiki. Thank you Thomas Steinbach
