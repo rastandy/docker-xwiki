@@ -1,30 +1,81 @@
-Provides a full XWiki environment made up of the following:
-* A container running the latest MySQL 5.x database and configured to use UTF8 and be case-insensitive
-* A container running the latest Tomcat 8 + Java 8 + XWiki 8.4.4
+Provides several full Docker environments for running XWiki.
+
+The following configurations are currently supported:
+* Two Docker containers with one container for running latest MySQL 5.x database (configured to use UTF8 and be 
+case-insensitive) and another container for running the latest Tomcat 8 + Java 8 + XWiki (the version depends on the 
+branch/tag you use).
 
 All source files are under the LGPL 2.1 license.
 
-Using
-=====
+# Using
 
-* Install Docker on your machine
-* Install Git and run `git clone https://github.com/xwiki-contrib/docker-xwiki.git` or download the content of https://github.com/xwiki-contrib/docker-xwiki
-* Go to the `xwiki-mysql-tomcat` directory: `cd xwiki-mysql-tomcat`
+You should first install [Docker](https://www.docker.com/) on your machine.
 
-With docker-compose
--------------------
+Then there are several options:
 
-* Run `docker-compose up`
-* Note that you can configure the default environment variables by editing the `.env` file
+1. Get the [sources of this project](https://github.com/xwiki-contrib/docker-xwiki) and build them.
+2. Just pull the xwiki image from DockerHub.
 
-With Dockerfile
----------------
+## Building ##
 
-* Build the XWiki image with `docker build . -t xwiki-mysql-tomcat:latest -t xwiki-mysql-tomcat:8.4.4`
-* Then you'll need to run a mysql container and a container for the built xwiki image
+This is the simplest solution and the one recommended. Here are the steps:
 
-Details
-=======
+* Install Git and run `git clone https://github.com/xwiki-contrib/docker-xwiki.git` or download the sources from
+the GitHub UI. Then choose the branch or tag that you wish to use:
+  * The `master`branch will get you the latest released version of XWiki
+  * The `8.x` branch will get you the latest released version of XWiki for the 8.x cycle
+  * The `8.4.4` tag will get you exactly XWiki 8.4.4.
+  * etc.
+* Go the directory corresponding to the configuration you wish to build, for example: `cd xwiki-mysql-tomcat`.
+* Run `docker-compose up` 
+* Start a browser and point it to `http://localhost:8080`
+
+Note that if you want to set a custom version of XWiki you can checkout `master` and edit the `env` file and set the 
+values you need in there. It's also possible to override them on the command line with 
+`docker-compose run -e "XWIKI_VERSION=8.4.4"`.
+
+Note that `docker-compose up` will automatically build the XWiki image on the first run. If you need to rebuild it 
+you can issue `docker-compose up --build`. You can also build the image with
+`docker build . -t xwiki-mysql-tomcat:latest` for example.
+
+## Pulling existing image ##
+
+This is a bit more complex since you need to have 2 docker containers running: one for XWiki and one for the database.
+
+Here's a minimal Docker Compose file using MySQL that you could use as an example (full example
+[here](https://github.com/xwiki-contrib/xwiki-mysql-tomcat/blob/master/docker-compose-using.yml):
+
+```
+version: '2'
+services:
+  web:
+    image: "xwiki/xwiki-mysql-tomcat:latest"
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    volumes:
+      - xwiki-data:/var/lib/xwiki
+    environment:
+      - MYSQL_USER=xwiki
+      - MYSQL_PASSWORD=xwiki
+      - MYSQL_DATABASE=xwiki
+  db:
+    image: "mysql:5"
+    volumes:
+      - ./mysql/xwiki.cnf:/etc/mysql/conf.d/xwiki.cnf
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=xwiki
+      - MYSQL_USER=xwiki
+      - MYSQL_PASSWORD=xwiki
+      - MYSQL_DATABASE=xwiki
+volumes:
+  mysql-data: {}
+  xwiki-data: {}
+```
+
+# Details for xwiki-mysql-tomcat
 
 Volumes:
 * Two volumes are created:
@@ -39,15 +90,13 @@ MySQL:
  * Execute bash in the mysql container: `docker exec -it <containerid> bash -l`
  * Once inside the mysql container execute the `mysql` command: `mysql --user=xwiki --password=xwiki`
 
-Future
-======
+# Future
 
 * Setup xinit
 * Configure libreoffice
 * Solr as external service
 
-Credits
-=======
+# Credits
 
 * Created by Vincent Massol
 * Contributions from Ludovic Dubost, Jean Simard
